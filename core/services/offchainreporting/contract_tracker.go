@@ -20,7 +20,6 @@ import (
 	"github.com/smartcontractkit/chainlink/core/utils"
 	"github.com/smartcontractkit/libocr/gethwrappers/offchainaggregator"
 	"github.com/smartcontractkit/libocr/offchainreporting/confighelper"
-	"github.com/smartcontractkit/libocr/offchainreporting/types"
 	ocrtypes "github.com/smartcontractkit/libocr/offchainreporting/types"
 )
 
@@ -133,7 +132,7 @@ func (t *OCRContractTracker) processLogs() {
 				if x == nil {
 					break
 				}
-				cc := x.(types.ContractConfig)
+				cc := x.(ocrtypes.ContractConfig)
 				select {
 				case t.chConfigs <- cc:
 				case <-t.chStop:
