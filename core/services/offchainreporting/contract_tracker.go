@@ -205,12 +205,14 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		}
 		t.lrrMu.Lock()
 		if rr.Round >= t.latestRoundRequested.Round && rr.Epoch >= t.latestRoundRequested.Epoch {
+			t.logger.Infow("OCRContractTracker: received new latest RoundRequested event", "latestRoundRequested", *rr)
 			t.latestRoundRequested = *rr
 		} else {
-			t.logger.Warn("OCRContractTracker: ignoring out of date RoundRequested event", "latestRoundRequested", t.latestRoundRequested, "roundRequested", rr)
+			t.logger.Warnw("OCRContractTracker: ignoring out of date RoundRequested event", "latestRoundRequested", t.latestRoundRequested, "roundRequested", rr)
 		}
 		t.lrrMu.Unlock()
 	default:
+		logger.Debugw("OCRContractTracker: got unrecognised log topic", "topic", topics[0])
 	}
 
 	// TODO: Defer this? What if log parsing errors?
