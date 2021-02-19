@@ -132,7 +132,10 @@ func (t *OCRContractTracker) processLogs() {
 				if x == nil {
 					break
 				}
-				cc := x.(ocrtypes.ContractConfig)
+				cc, ok := x.(ocrtypes.ContractConfig)
+				if !ok {
+					panic(fmt.Sprintf("expected ocrtypes.ContractConfig but got %T", x))
+				}
 				select {
 				case t.chConfigs <- cc:
 				case <-t.chStop:
