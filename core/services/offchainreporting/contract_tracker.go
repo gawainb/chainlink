@@ -159,7 +159,6 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		return
 	}
 
-	// TODO: Transactional?
 	was, err := lb.WasAlreadyConsumed()
 	if err != nil {
 		t.logger.Errorw("OCRContract: could not determine if log was already consumed", "error", err)
@@ -204,6 +203,7 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		t.lrrMu.Lock()
 		if rr.Round >= t.latestRoundRequested.Round && rr.Epoch >= t.latestRoundRequested.Epoch {
 			t.logger.Infow("OCRContractTracker: received new latest RoundRequested event", "latestRoundRequested", *rr)
+			// TODO: Save in database in case of crash
 			t.latestRoundRequested = *rr
 		} else {
 			t.logger.Warnw("OCRContractTracker: ignoring out of date RoundRequested event", "latestRoundRequested", t.latestRoundRequested, "roundRequested", rr)
