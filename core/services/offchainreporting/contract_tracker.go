@@ -169,17 +169,19 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		return
 	}
 
+	defer logger.ErrorIfCalling(lb.MarkConsumed)
+
 	topics := lb.RawLog().Topics
 	if len(topics) == 0 {
 		return
 	}
+	raw := lb.RawLog()
+	if raw.Address != t.contractAddress {
+		t.logger.Errorf("log address of 0x%x does not match configured contract address of 0x%x", raw.Address, t.contractAddress)
+		return
+	}
 	switch topics[0] {
 	case OCRContractConfigSet:
-		raw := lb.RawLog()
-		if raw.Address != t.contractAddress {
-			t.logger.Errorf("log address of 0x%x does not match configured contract address of 0x%x", raw.Address, t.contractAddress)
-			return
-		}
 		var configSet *offchainaggregator.OffchainAggregatorConfigSet
 		configSet, err = t.contractFilterer.ParseConfigSet(raw)
 		if err != nil {
@@ -191,11 +193,6 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 
 		t.configsMB.Deliver(cc)
 	case OCRContractLatestRoundRequested:
-		raw := lb.RawLog()
-		if raw.Address != t.contractAddress {
-			t.logger.Errorf("log address of 0x%x does not match configured contract address of 0x%x", raw.Address, t.contractAddress)
-			return
-		}
 		var rr *offchainaggregator.OffchainAggregatorRoundRequested
 		rr, err = t.contractFilterer.ParseRoundRequested(raw)
 		if err != nil {
@@ -205,7 +202,7 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		t.lrrMu.Lock()
 		if rr.Round >= t.latestRoundRequested.Round && rr.Epoch >= t.latestRoundRequested.Epoch {
 			t.logger.Infow("OCRContractTracker: received new latest RoundRequested event", "latestRoundRequested", *rr)
-			// TODO: Save in database in case of crash
+			// TODO: Save in database in case of crash - make it transactional?
 			t.latestRoundRequested = *rr
 		} else {
 			t.logger.Warnw("OCRContractTracker: ignoring out of date RoundRequested event", "latestRoundRequested", t.latestRoundRequested, "roundRequested", rr)
@@ -215,11 +212,6 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		logger.Debugw("OCRContractTracker: got unrecognised log topic", "topic", topics[0])
 	}
 
-	err = lb.MarkConsumed()
-	if err != nil {
-		t.logger.Errorw("OCRContract: could not mark log consumed", "error", err)
-		return
-	}
 }
 
 // IsV2Job complies with LogListener interface
