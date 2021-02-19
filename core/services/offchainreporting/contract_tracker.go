@@ -188,10 +188,8 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		configSet.Raw = lb.RawLog()
 		cc := confighelper.ContractConfigFromConfigSetEvent(*configSet)
 
-		// TODO: Use queue? Only necessary because libocr is opaque
 		t.configsMB.Deliver(cc)
 	case OCRContractLatestRoundRequested:
-		// TODO: Needs tests
 		raw := lb.RawLog()
 		if raw.Address != t.contractAddress {
 			t.logger.Errorf("log address of 0x%x does not match configured contract address of 0x%x", raw.Address, t.contractAddress)
@@ -215,7 +213,6 @@ func (t *OCRContractTracker) HandleLog(lb log.Broadcast, err error) {
 		logger.Debugw("OCRContractTracker: got unrecognised log topic", "topic", topics[0])
 	}
 
-	// TODO: Defer this? What if log parsing errors?
 	err = lb.MarkConsumed()
 	if err != nil {
 		t.logger.Errorw("OCRContract: could not mark log consumed", "error", err)
