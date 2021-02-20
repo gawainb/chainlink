@@ -34,6 +34,7 @@ func Test_OCRContractTracker_HandleLog_OCRContractLatestRoundRequested(t *testin
 
 		rawLog := cltest.LogFromFixture(t, "./testdata/round_requested_log.json")
 		logBroadcast.On("RawLog").Return(rawLog)
+		logBroadcast.On("MarkConsumed").Return(nil)
 		logBroadcast.On("WasAlreadyConsumed").Return(false, nil)
 
 		configDigest, round, epoch, err := tracker.LatestRoundRequested(context.Background(), 0)
